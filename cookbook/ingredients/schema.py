@@ -66,8 +66,38 @@ class CreateCategory(graphene.Mutation):
 
     def mutate(self, info, name):
         category = Category.objects.create(name=name)
-        ok=True
-        return CreateCategory(category=category,ok=ok)
+        ok = True
+        return CreateCategory(category=category, ok=ok)
+
+
+class UpdateCategory(graphene.Mutation):
+    class Arguments:
+        id = graphene.Int(required=True)
+        name = graphene.String()
+
+    category = graphene.Field(lambda: CategoryType)
+    ok = graphene.Boolean()
+
+    def mutate(self, info, **kwargs):
+        id = kwargs.get('id')
+        ok = False
+        kwargs.pop('id')
+        if len(kwargs):
+            ok = Category.objects.filter(pk=id).update(**kwargs)
+        category = Category.objects.get(pk=id)
+        return UpdateCategory(category=category, ok=ok)
+
+
+class DeleteCategory(graphene.Mutation):
+    class Arguments:
+        id = graphene.Int(required=True)
+
+    ok = graphene.Boolean()
+
+    def mutate(self, info, **kwargs):
+        id = kwargs.get('id')
+        ok = Category.objects.get(pk=id).delete()
+        return DeleteCategory(ok=ok)
 
 
 class CreateIngredient(graphene.Mutation):
@@ -83,9 +113,47 @@ class CreateIngredient(graphene.Mutation):
         kwargs['category'] = Category.objects.get(pk=kwargs['category'])
         ingredient = Ingredient.objects.create(**kwargs)
         ok = True
-        return CreateIngredient(ingredient=ingredient,ok=ok)
+        return CreateIngredient(ingredient=ingredient, ok=ok)
+
+
+class UpdateIngredient(graphene.Mutation):
+    class Arguments:
+        id = graphene.Int(required=True)
+        name = graphene.String()
+        notes = graphene.String()
+        category = graphene.Int()
+
+    ingredient = graphene.Field(lambda: IngredientType)
+    ok = graphene.Boolean()
+
+    def mutate(self, info, **kwargs):
+        id = kwargs.get('id')
+        ok = False
+        kwargs.pop('id')
+        if kwargs.get('category'):
+            kwargs['category'] = Category.objects.get(pk=kwargs['category'])
+        if len(kwargs):
+            ok = Ingredient.objects.filter(pk=id).update(**kwargs)
+        ingredient = Ingredient.objects.get(pk=id)
+        return UpdateIngredient(ingredient=ingredient, ok=ok)
+
+
+class DeleteIngredient(graphene.Mutation):
+    class Arguments:
+        id = graphene.Int(required=True)
+
+    ok = graphene.Boolean()
+
+    def mutate(self, info, **kwargs):
+        id = kwargs.get('id')
+        ok = Ingredient.objects.get(pk=id).delete()
+        return DeleteIngredient(ok=ok)
 
 
 class Mutation(object):
     create_category = CreateCategory.Field()
+    update_category = UpdateCategory.Field()
+    delete_category = DeleteCategory.Field()
     create_ingredient = CreateIngredient.Field()
+    update_ingredient = UpdateIngredient.Field()
+    delete_ingredient = DeleteIngredient.Field()
