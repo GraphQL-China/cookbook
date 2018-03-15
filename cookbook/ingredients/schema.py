@@ -21,7 +21,6 @@ class Query(object):
                               name=graphene.String())
     all_categories = graphene.List(CategoryType)
 
-
     ingredient = graphene.Field(IngredientType,
                                 id=graphene.Int(),
                                 name=graphene.String())
@@ -56,3 +55,37 @@ class Query(object):
             return Ingredient.objects.get(name=name)
 
         return None
+
+
+class CreateCategory(graphene.Mutation):
+    class Arguments:
+        name = graphene.String(required=True)
+
+    category = graphene.Field(lambda: CategoryType)
+    ok = graphene.Boolean()
+
+    def mutate(self, info, name):
+        category = Category.objects.create(name=name)
+        ok=True
+        return CreateCategory(category=category,ok=ok)
+
+
+class CreateIngredient(graphene.Mutation):
+    class Arguments:
+        name = graphene.String(required=True)
+        notes = graphene.String(required=True)
+        category = graphene.Int(required=True)
+
+    ingredient = graphene.Field(lambda: IngredientType)
+    ok = graphene.Boolean()
+
+    def mutate(self, info, **kwargs):
+        kwargs['category'] = Category.objects.get(pk=kwargs['category'])
+        ingredient = Ingredient.objects.create(**kwargs)
+        ok = True
+        return CreateIngredient(ingredient=ingredient,ok=ok)
+
+
+class Mutation(object):
+    create_category = CreateCategory.Field()
+    create_ingredient = CreateIngredient.Field()
