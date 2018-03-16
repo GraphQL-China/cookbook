@@ -79,9 +79,8 @@ class UpdateCategory(graphene.Mutation):
     ok = graphene.Boolean()
 
     def mutate(self, info, **kwargs):
-        id = kwargs.get('id')
+        id = kwargs.pop('id')
         ok = False
-        kwargs.pop('id')
         if len(kwargs):
             ok = Category.objects.filter(pk=id).update(**kwargs)
         category = Category.objects.get(pk=id)
@@ -127,9 +126,8 @@ class UpdateIngredient(graphene.Mutation):
     ok = graphene.Boolean()
 
     def mutate(self, info, **kwargs):
-        id = kwargs.get('id')
+        id = kwargs.pop('id')
         ok = False
-        kwargs.pop('id')
         if kwargs.get('category'):
             kwargs['category'] = Category.objects.get(pk=kwargs['category'])
         if len(kwargs):
